@@ -15,6 +15,17 @@ export async function GET(request: Request) {
         const url = new URL(request.url);
         const isManual = url.searchParams.get('manual') === 'true';
 
+        // Check for Vercel Cron Authorization if not a manual trigger
+        if (!isManual) {
+            const authHeader = request.headers.get('authorization');
+            if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+                return NextResponse.json(
+                    { error: 'Unauthorized', message: 'Invalid or missing cron secret' },
+                    { status: 401 }
+                );
+            }
+        }
+
         const today = new Date();
         const currentDay = today.getDate();
         const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
