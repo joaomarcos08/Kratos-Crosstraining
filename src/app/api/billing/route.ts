@@ -78,32 +78,29 @@ export async function GET(request: Request) {
                     }
                 }
             } else {
-                // Rotina Manual: Verifica TODAS as inadimplências (Vence Hoje ou Atrasado)
+                // Rotina Manual: Verifica TODAS as inadimplências (Vence Hoje ou Atrasado) baseando-se na mesma lógica do painel
 
-                // Primeiro verifica se o aluno JÁ pagou o mês atual. 
-                // Se pagou o mês atual, ele NUNCA está atrasado, não importa o dia de vencimento.
                 const hasPaidCurrentMonth = payments?.some(p => p.student_id === student.id && p.reference_month === currentMonthStr);
+                const hasPaidPrevMonth = payments?.some(p => p.student_id === student.id && p.reference_month === prevMonthStr);
 
                 if (hasPaidCurrentMonth) {
                     debugLogs.push(`MANUAL Check student ${student.name} - already paid current month. Skipping.`);
-                    continue;
+                    continue; // Em dia
                 }
 
-                const isDay0 = student.due_day === currentDay;
-
-                // Se o vencimento é hoje ou já passou (neste mês), a pendência é do mês atual.
-                // Se o vencimento ainda vai chegar (neste mês), a pendência (se houver) é do mês passado.
-                const checkMonth = student.due_day <= currentDay ? currentMonthStr : prevMonthStr;
-
-                debugLogs.push(`MANUAL Check student ${student.name} - due_day: ${student.due_day}, checkMonth: ${checkMonth}`);
-
-                const hasPaidCheckMonth = payments?.some(p => p.student_id === student.id && p.reference_month === checkMonth);
-
-                if (!hasPaidCheckMonth) {
-                    if (isDay0) {
-                        defaulters.push({ ...student, delayType: 'day0' });
-                    } else {
+                if (student.due_day === currentDay) {
+                    // Vence Hoje
+                    defaulters.push({ ...student, delayType: 'day0' });
+                } else if (student.due_day < currentDay) {
+                    // Já venceu neste mês e não pagou (hasPaidCurrentMonth é falso)
+                    defaulters.push({ ...student, delayType: 'day5' });
+                } else {
+                    // O vencimento deste mês ainda não chegou (due_day > currentDay).
+                    // Então a checagem de inadimplência recai sobre o mês passado.
+                    if (!hasPaidPrevMonth) {
                         defaulters.push({ ...student, delayType: 'day5' });
+                    } else {
+                        debugLogs.push(`MANUAL Check student ${student.name} - not due this month yet, and paid last month. Skipping.`);
                     }
                 }
             }
