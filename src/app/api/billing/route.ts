@@ -134,49 +134,39 @@ export async function GET(request: Request) {
         const instanceName = process.env.EVOLUTION_INSTANCE_NAME;
 
         if (evoUrl && evoKey && instanceName && defaulters.length > 0) {
-            // Process the messages in the background to avoid API timeouts
-            const processMessages = async () => {
-                for (let i = 0; i < defaulters.length; i++) {
-                    const s = defaulters[i];
-                    // Formatting number: only digits, enforce 55 DDI for Brazil
-                    let jid = s.whatsapp.replace(/\D/g, '');
-                    if (!jid.startsWith('55')) jid = `55${jid}`;
+            // Enviar todas as mensagens em paralelo usando Promise.all
+            // Evolution API processará a fila nativamente sem travar a Vercel
+            await Promise.all(defaulters.map(async (s, i) => {
+                let jid = s.whatsapp.replace(/\D/g, '');
+                if (!jid.startsWith('55')) jid = `55${jid}`;
 
-                    let template = s.delayType === 'day5' ? customMessages.day5 : customMessages.day0;
-                    let messageText = template
-                        .replace(/{nome}/g, s.name)
-                        .replace(/{plano}/g, s.plan_type)
-                        .replace(/{valor}/g, Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                let template = s.delayType === 'day5' ? customMessages.day5 : customMessages.day0;
+                let messageText = template
+                    .replace(/{nome}/g, s.name)
+                    .replace(/{plano}/g, s.plan_type)
+                    .replace(/{valor}/g, Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
-                    try {
-                        await fetch(`${evoUrl}/message/sendText/${instanceName}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'apikey': evoKey
-                            },
-                            body: JSON.stringify({
-                                number: jid,
-                                options: { delay: 1200, presence: "composing" },
-                                textMessage: {
-                                    text: messageText
-                                }
-                            })
-                        });
-                        console.log(`Mensagem de cobrança enviada para ${s.name} (${jid})`);
-                    } catch (e) {
-                        console.error(`Erro ao enviar cobrança para ${s.name}:`, e);
-                    }
-
-                    // Add delay between messages to avoid rate limits, if not the last message
-                    if (i < defaulters.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 15000));
-                    }
+                try {
+                    await fetch(`${evoUrl}/message/sendText/${instanceName}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': evoKey
+                        },
+                        body: JSON.stringify({
+                            number: jid,
+                            // Evolution API delay parameter space them out slightly (1.2s base + optional spacing)
+                            options: { delay: 1200 + (i * 1000), presence: "composing" },
+                            textMessage: {
+                                text: messageText
+                            }
+                        })
+                    });
+                    console.log(`Mensagem de cobrança enviada para ${s.name} (${jid})`);
+                } catch (e) {
+                    console.error(`Erro ao enviar cobrança para ${s.name}:`, e);
                 }
-            };
-
-            // Fire and forget
-            processMessages().catch(console.error);
+            }));
         }
 
         return NextResponse.json({
