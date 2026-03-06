@@ -134,9 +134,12 @@ export async function GET(request: Request) {
         const instanceName = process.env.EVOLUTION_INSTANCE_NAME;
 
         if (evoUrl && evoKey && instanceName && defaulters.length > 0) {
-            // Enviar todas as mensagens em paralelo usando Promise.all
-            // Evolution API processará a fila nativamente sem travar a Vercel
-            await Promise.all(defaulters.map(async (s, i) => {
+            // Para o seu cenário de testes (vários alunos com o mesmo número),
+            // a Evolution API/WhatsApp descarta mensagens simultâneas pro mesmo destino.
+            // Precisamos enviar um por um, com um pequeno intervalo entre eles.
+            // Limitamos a 1.5s pra não dar timeout na Vercel (limite 10s) nos testes.
+            for (let i = 0; i < defaulters.length; i++) {
+                const s = defaulters[i];
                 let jid = s.whatsapp.replace(/\D/g, '');
                 if (!jid.startsWith('55')) jid = `55${jid}`;
 
@@ -155,8 +158,7 @@ export async function GET(request: Request) {
                         },
                         body: JSON.stringify({
                             number: jid,
-                            // Evolution API delay parameter space them out slightly (1.2s base + optional spacing)
-                            options: { delay: 1200 + (i * 1000), presence: "composing" },
+                            options: { delay: 1200, presence: "composing" },
                             textMessage: {
                                 text: messageText
                             }
@@ -166,7 +168,11 @@ export async function GET(request: Request) {
                 } catch (e) {
                     console.error(`Erro ao enviar cobrança para ${s.name}:`, e);
                 }
-            }));
+
+                if (i < defaulters.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+            }
         }
 
         return NextResponse.json({
