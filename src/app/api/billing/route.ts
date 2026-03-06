@@ -49,7 +49,8 @@ export async function GET(request: Request) {
         const { data: payments, error: paymentsError } = await supabaseAdmin
             .from('payments')
             .select('student_id, reference_month')
-            .in('student_id', studentIds);
+            .in('student_id', studentIds)
+            .eq('status', 'paid');
 
         if (paymentsError) throw paymentsError;
 
@@ -105,6 +106,8 @@ export async function GET(request: Request) {
                 }
             }
         }
+
+        console.log("=== API DEFAULTERS MANUAL ===", defaulters.map(d => ({ name: d.name, delayType: d.delayType })));
 
         debugLogs.push(`Final defaulters: ${JSON.stringify(defaulters.map(d => ({ name: d.name, delayType: d.delayType })))}`);
 
