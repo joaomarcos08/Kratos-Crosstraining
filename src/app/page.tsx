@@ -152,8 +152,15 @@ export default function DashboardPage() {
                 } else {
                     if (student.due_day === currentDay) {
                         sStatus = "Vence Hoje"
-                    } else {
+                    } else if (student.due_day < currentDay) {
                         sStatus = "Atrasado"
+                    } else {
+                        // O vencimento deste mês ainda não chegou. Depende do pagamento do mês passado.
+                        if (!hasPaidPrev) {
+                            sStatus = "Atrasado"
+                        } else {
+                            sStatus = "Em dia"
+                        }
                     }
 
                     // KPI de inadimplentes exato:

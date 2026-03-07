@@ -4,11 +4,18 @@ import fs from 'fs';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-key';
 
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { persistSession: false },
+    global: {
+        fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }),
+    },
+});
 
 export async function GET(request: Request) {
     try {
@@ -26,18 +33,21 @@ export async function GET(request: Request) {
             }
         }
 
-        const today = new Date();
-        const currentDay = today.getDate();
-        const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        // Calculate Date in BRT timezone (UTC-3)
+        const nowUtc = new Date();
+        const today = new Date(nowUtc.getTime() - (3 * 60 * 60 * 1000));
+        
+        const currentDay = today.getUTCDate();
+        const currentMonthStr = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}`;
 
         const fiveDaysAgo = new Date(today);
-        fiveDaysAgo.setDate(today.getDate() - 5);
-        const day5 = fiveDaysAgo.getDate();
-        const month5Str = `${fiveDaysAgo.getFullYear()}-${String(fiveDaysAgo.getMonth() + 1).padStart(2, '0')}`;
+        fiveDaysAgo.setUTCDate(today.getUTCDate() - 5);
+        const day5 = fiveDaysAgo.getUTCDate();
+        const month5Str = `${fiveDaysAgo.getUTCFullYear()}-${String(fiveDaysAgo.getUTCMonth() + 1).padStart(2, '0')}`;
 
         const prevMonthDate = new Date(today);
-        prevMonthDate.setMonth(today.getMonth() - 1);
-        const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+        prevMonthDate.setUTCMonth(today.getUTCMonth() - 1);
+        const prevMonthStr = `${prevMonthDate.getUTCFullYear()}-${String(prevMonthDate.getUTCMonth() + 1).padStart(2, '0')}`;
 
         let studentsQuery = supabaseAdmin.from('students').select('*').eq('is_active', true);
 
