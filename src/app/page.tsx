@@ -226,20 +226,41 @@ export default function DashboardPage() {
         }
     }
 
-    async function togglePaymentStatus(studentId: string, currentStatus: "Atrasado" | "Vence Hoje" | "Em dia", price: number) {
+    async function togglePaymentStatus(studentId: string, currentStatus: "Atrasado" | "Vence Hoje" | "Em dia", price: number, due_day: number) {
         try {
             const today = new Date()
+            const currentDay = today.getDate()
+            
             const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+            
+            const prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+            const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`
+
+            // Determinar qual mês estamos manipulando.
+            // Se o vencimento ainda NÃO chegou neste mês, e ele não está Em dia, ele deve o mês passado.
+            let targetMonthStr = currentMonthStr
+            if (due_day > currentDay && currentStatus !== "Em dia") {
+                targetMonthStr = prevMonthStr
+            }
 
             if (currentStatus === "Em dia") {
-                // Remove the payment to mark as unpaid
+                // Remove the payment to mark as unpaid (sempre check both just in case, or default to current)
+                // Usualmente se ele tá em dia e clica, ele quer desmarcar o pagamento que o deixou em dia.
+                // Se due_day > currentDay, o pagamento que o deixou em dia foi o do mês passado, OU o atual (pago adiantado).
+                // Para ser seguro, vamos apagar daquele que definimos como target.
                 const { error } = await supabase
                     .from('payments')
                     .delete()
                     .eq('student_id', studentId)
-                    .eq('reference_month', currentMonthStr)
+                    .eq('reference_month', due_day > currentDay ? prevMonthStr : currentMonthStr)
 
                 if (error) throw error;
+                
+                // Tambem tenta apagar do mes atual se ele estiver adiantado (fallback)
+                if (due_day > currentDay) {
+                     await supabase.from('payments').delete().eq('student_id', studentId).eq('reference_month', currentMonthStr)
+                }
+
                 toast.success("Pagamento removido. Status atualizado para pendente.")
             } else {
                 // Add a payment to mark as paid
@@ -247,14 +268,14 @@ export default function DashboardPage() {
                     .from('payments')
                     .insert([{
                         student_id: studentId,
-                        reference_month: currentMonthStr,
+                        reference_month: targetMonthStr,
                         payment_date: new Date().toISOString(),
                         amount_paid: price,
                         status: 'paid'
                     }])
 
                 if (error) throw error;
-                toast.success("Pagamento confirmado. Aluno está em dia!")
+                toast.success(`Pagamento confirmado (${targetMonthStr}). Aluno está em dia!`)
             }
 
             // Refresh dashboard data seamlessly
@@ -607,7 +628,7 @@ export default function DashboardPage() {
                                                                 <Badge
                                                                     className="cursor-pointer hover:opacity-80 transition-all active:scale-95 shadow-sm"
                                                                     title="Clique para alterar o status de pagamento"
-                                                                    onClick={() => togglePaymentStatus(student.id, student.status, student.price)}
+                                                                    onClick={() => togglePaymentStatus(student.id, student.status, student.price, student.due_day)}
                                                                     variant={
                                                                         student.status === "Atrasado" ? "destructive" :
                                                                             student.status === "Vence Hoje" ? "warning" :
