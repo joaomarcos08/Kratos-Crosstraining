@@ -8,13 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowUpRight, Users, UserX, DollarSign, Filter, Loader2, MousePointerClick, Search, Smartphone, QrCode, Edit2 } from "lucide-react"
+import { ArrowUpRight, Users, UserX, DollarSign, Filter, Loader2, MousePointerClick, Search, Smartphone, QrCode, Edit2, LogOut } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { StudentForm } from "@/components/shared/student-form"
 import { supabase } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 type StudentWithStatus = {
     id: string;
@@ -34,6 +35,7 @@ export default function DashboardPage() {
     const [students, setStudents] = React.useState<StudentWithStatus[]>([])
     const [isLoading, setIsLoading] = React.useState(true)
     const [stats, setStats] = React.useState({ revenue: 0, defaulters: 0, active: 0 })
+    const router = useRouter()
 
     // WhatsApp State
     const [qrCode, setQrCode] = React.useState<string | null>(null)
@@ -406,12 +408,28 @@ export default function DashboardPage() {
         }
     }
 
+    async function handleLogout() {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' })
+            toast.success("Logoff realizado")
+            router.push('/login')
+            router.refresh()
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
                 <div className="flex items-center gap-3">
                     <Image src="/logo.jpg" alt="Kratos Crosstraining Logo" width={48} height={48} className="rounded-md shadow-sm border border-border/50" />
-                    <h2 className="text-3xl font-bold tracking-tight">Kratos Crosstraining</h2>
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-3xl font-bold tracking-tight">Kratos Crosstraining</h2>
+                        <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-red-400" title="Sair do sistema">
+                            <LogOut className="h-5 w-5" />
+                        </Button>
+                    </div>
                 </div>
                 <div className="flex items-center space-x-2">
                     <Button onClick={fetchData} variant="outline" size="sm" disabled={isLoading || isBilling}>
