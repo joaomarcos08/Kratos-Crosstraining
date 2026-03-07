@@ -70,17 +70,15 @@ export default function DashboardPage() {
                 if (data.state === 'open') {
                     setWaStatus("Conectado")
                     setQrCode(null)
-                    if (waStatus !== "Conectado") {
-                        toast.success("WhatsApp conectado com sucesso!")
-                    }
+                    // Não dar toast.success aqui no load inicial silencioso pra não encher o saco
                 }
             } catch (error) {
                 console.error("Erro ao verificar status", error)
             }
         }
 
-        // Automatic check when opening the tab
-        if (activeTab === "whatsapp" && waStatus === "Desconectado") {
+        // Automatic check when mounting page
+        if (waStatus === "Desconectado") {
             checkStatus()
         }
 
@@ -88,18 +86,18 @@ export default function DashboardPage() {
             intervalId = setInterval(checkStatus, 3000)
         }
 
-        // Fetch custom messages
-        if (activeTab === "whatsapp") {
-            fetch('/api/settings/messages')
-                .then(r => r.json())
-                .then(data => setMessagesState({ day0: data.day0 || "", day5: data.day5 || "" }))
-                .catch(console.error)
-        }
-
         return () => {
             if (intervalId) clearInterval(intervalId)
         }
-    }, [waStatus, activeTab])
+    }, [waStatus])
+
+    // Load messages globally on mount
+    React.useEffect(() => {
+        fetch('/api/settings/messages')
+            .then(r => r.json())
+            .then(data => setMessagesState({ day0: data.day0 || "", day5: data.day5 || "" }))
+            .catch(console.error)
+    }, [])
 
     async function fetchData() {
         setIsLoading(true)
