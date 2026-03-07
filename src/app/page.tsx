@@ -445,34 +445,36 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6 max-w-[100vw] overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
                 <div className="flex items-center gap-3">
                     <Image src="/logo.jpg" alt="Kratos Crosstraining Logo" width={48} height={48} className="rounded-md shadow-sm border border-border/50" />
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-3xl font-bold tracking-tight">Kratos Crosstraining</h2>
-                        <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-red-400" title="Sair do sistema">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Kratos Crosstraining</h2>
+                        <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-red-400 -mr-2 sm:mr-0" title="Sair do sistema">
                             <LogOut className="h-5 w-5" />
                         </Button>
                     </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <Button onClick={fetchData} variant="outline" size="sm" disabled={isLoading || isBilling}>
-                        Atualizar Dados
+                <div className="flex w-full sm:w-auto items-center space-x-2 pt-2 sm:pt-0">
+                    <Button onClick={fetchData} variant="outline" size="sm" disabled={isLoading || isBilling} className="flex-1 sm:flex-none">
+                        Atualizar
                     </Button>
-                    <Button onClick={triggerBilling} variant="default" size="sm" disabled={isBilling} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Button onClick={triggerBilling} variant="default" size="sm" disabled={isBilling} className="bg-emerald-600 hover:bg-emerald-700 flex-1 sm:flex-none">
                         {isBilling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Smartphone className="mr-2 h-4 w-4" />}
-                        Disparar Cobranças
+                        Cobrar
                     </Button>
                 </div>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <TabsList className="mb-8">
-                    <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                    <TabsTrigger value="alunos">Gerenciamento de Alunos</TabsTrigger>
-                    <TabsTrigger value="whatsapp">Conexão WhatsApp</TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                    <TabsList className="mb-2 sm:mb-8 min-w-max">
+                        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                        <TabsTrigger value="alunos">Gerenciamento de Alunos</TabsTrigger>
+                        <TabsTrigger value="whatsapp">Conexão WhatsApp</TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="dashboard" className="space-y-4">
                     {isLoading ? (
@@ -518,8 +520,8 @@ export default function DashboardPage() {
                                 </Card>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                                <Card className="col-span-4">
+                            <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
+                                <Card className="lg:col-span-4">
                                     <CardHeader>
                                         <CardTitle>Recebimentos (Últimos 6 meses)</CardTitle>
                                     </CardHeader>
@@ -535,7 +537,7 @@ export default function DashboardPage() {
                                     </CardContent>
                                 </Card>
 
-                                <Card className="col-span-3">
+                                <Card className="lg:col-span-3">
                                     <CardHeader>
                                         <CardTitle>Módulo de Alunos</CardTitle>
                                         <p className="text-sm text-muted-foreground">Gerencie o status de pagamento dos seus alunos.</p>
@@ -567,7 +569,8 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
 
-                                        <Table>
+                                        <div className="rounded-md border overflow-x-auto">
+                                            <Table>
                                             <TableHeader>
                                                 <TableRow>
                                                     <TableHead>Aluno</TableHead>
@@ -616,6 +619,7 @@ export default function DashboardPage() {
                                                 )}
                                             </TableBody>
                                         </Table>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -714,25 +718,25 @@ export default function DashboardPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">Nome</Label>
-                            <Input id="name" value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} className="col-span-3" />
+                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
+                            <Label htmlFor="name" className="text-left sm:text-right w-full sm:w-auto">Nome</Label>
+                            <Input id="name" value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} className="w-full sm:col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="whatsapp" className="text-right">WhatsApp</Label>
-                            <Input id="whatsapp" value={editForm.whatsapp} onChange={(e) => setEditForm(prev => ({ ...prev, whatsapp: e.target.value }))} className="col-span-3" />
+                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
+                            <Label htmlFor="whatsapp" className="text-left sm:text-right w-full sm:w-auto">WhatsApp</Label>
+                            <Input id="whatsapp" value={editForm.whatsapp} onChange={(e) => setEditForm(prev => ({ ...prev, whatsapp: e.target.value }))} className="w-full sm:col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="plan" className="text-right">Plano</Label>
-                            <Input id="plan" value={editForm.plan_type} onChange={(e) => setEditForm(prev => ({ ...prev, plan_type: e.target.value }))} className="col-span-3" />
+                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
+                            <Label htmlFor="plan" className="text-left sm:text-right w-full sm:w-auto">Plano</Label>
+                            <Input id="plan" value={editForm.plan_type} onChange={(e) => setEditForm(prev => ({ ...prev, plan_type: e.target.value }))} className="w-full sm:col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="due" className="text-right">Dia Venc.</Label>
-                            <Input id="due" type="number" min="1" max="31" value={editForm.due_day} onChange={(e) => setEditForm(prev => ({ ...prev, due_day: Number(e.target.value) }))} className="col-span-3" />
+                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
+                            <Label htmlFor="due" className="text-left sm:text-right w-full sm:w-auto">Dia Venc.</Label>
+                            <Input id="due" type="number" min="1" max="31" value={editForm.due_day} onChange={(e) => setEditForm(prev => ({ ...prev, due_day: Number(e.target.value) }))} className="w-full sm:col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="price" className="text-right">Valor (R$)</Label>
-                            <Input id="price" type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm(prev => ({ ...prev, price: Number(e.target.value) }))} className="col-span-3" />
+                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
+                            <Label htmlFor="price" className="text-left sm:text-right w-full sm:w-auto">Valor (R$)</Label>
+                            <Input id="price" type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm(prev => ({ ...prev, price: Number(e.target.value) }))} className="w-full sm:col-span-3" />
                         </div>
                     </div>
                     <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-0 w-full">
