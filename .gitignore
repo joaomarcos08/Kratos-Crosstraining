@@ -43,4 +43,5 @@ next-env.d.ts
 /messages.json
 /cron_log.txt
 /evolution-api/api_logs.txt
-test_db.js
+test_*.js
+test_*.json
