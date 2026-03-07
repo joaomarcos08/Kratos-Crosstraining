@@ -45,3 +45,7 @@ next-env.d.ts
 /evolution-api/api_logs.txt
 test_*.js
 test_*.json
+*.log
+*.ps1
+/build*/
+/evolution-api/test*
