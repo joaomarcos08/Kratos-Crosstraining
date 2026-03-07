@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowUpRight, Users, UserX, DollarSign, Filter, Loader2, MousePointerClick, Search, Smartphone, QrCode, Edit2, LogOut } from "lucide-react"
+import { ArrowUpRight, Users, UserX, DollarSign, Filter, Loader2, MousePointerClick, Search, Smartphone, QrCode, Edit2, LogOut, Trash2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -48,6 +48,7 @@ export default function DashboardPage() {
     const [editingStudent, setEditingStudent] = React.useState<StudentWithStatus | null>(null)
     const [editForm, setEditForm] = React.useState({ name: "", whatsapp: "", plan_type: "", due_day: 1, price: 0 })
     const [isSavingEdit, setIsSavingEdit] = React.useState(false)
+    const [isDeleting, setIsDeleting] = React.useState(false)
 
     // Settings State
     const [messagesState, setMessagesState] = React.useState({ day0: "Carregando...", day5: "Carregando..." })
@@ -323,6 +324,32 @@ export default function DashboardPage() {
             toast.error("Erro ao atualizar: " + error.message)
         } finally {
             setIsSavingEdit(false)
+        }
+    }
+
+    async function handleDeleteStudent() {
+        if (!editingStudent) return;
+        
+        if (!confirm(`Tem certeza que deseja EXCLUIR o aluno ${editingStudent.name}? Essa ação não pode ser desfeita.`)) {
+            return;
+        }
+
+        setIsDeleting(true)
+        try {
+            const { error } = await supabase
+                .from('students')
+                .delete()
+                .eq('id', editingStudent.id)
+
+            if (error) throw error;
+
+            toast.success("Aluno removido com sucesso!")
+            setEditingStudent(null)
+            fetchData()
+        } catch (error: any) {
+            toast.error("Erro ao remover aluno: " + error.message)
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -710,12 +737,23 @@ export default function DashboardPage() {
                             <Input id="price" type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm(prev => ({ ...prev, price: Number(e.target.value) }))} className="col-span-3" />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditingStudent(null)}>Cancelar</Button>
-                        <Button onClick={handleSaveEdit} disabled={isSavingEdit}>
-                            {isSavingEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Salvar Alterações
+                    <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-0 w-full">
+                        <Button 
+                            variant="destructive" 
+                            onClick={handleDeleteStudent} 
+                            disabled={isDeleting || isSavingEdit}
+                            className="mt-2 sm:mt-0"
+                        >
+                            {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                            Excluir Aluno
                         </Button>
+                        <div className="flex gap-2 justify-end">
+                            <Button variant="outline" onClick={() => setEditingStudent(null)} disabled={isDeleting || isSavingEdit}>Cancelar</Button>
+                            <Button onClick={handleSaveEdit} disabled={isSavingEdit || isDeleting}>
+                                {isSavingEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Salvar Alterações
+                            </Button>
+                        </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
