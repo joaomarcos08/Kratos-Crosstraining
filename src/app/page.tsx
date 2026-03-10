@@ -738,33 +738,33 @@ export default function DashboardPage() {
             </Tabs>
 
             <Dialog open={!!editingStudent} onOpenChange={(open) => !open && setEditingStudent(null)}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Editar Aluno</DialogTitle>
                         <DialogDescription>
                             Altere os dados do aluno abaixo. Clique em salvar para confirmar.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
-                            <Label htmlFor="name" className="text-left sm:text-right w-full sm:w-auto">Nome</Label>
-                            <Input id="name" value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} className="w-full sm:col-span-3" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+                        <div className="space-y-2 sm:col-span-2">
+                            <Label htmlFor="name">Nome</Label>
+                            <Input id="name" value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} />
                         </div>
-                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
-                            <Label htmlFor="whatsapp" className="text-left sm:text-right w-full sm:w-auto">WhatsApp</Label>
-                            <Input id="whatsapp" value={editForm.whatsapp} onChange={(e) => setEditForm(prev => ({ ...prev, whatsapp: e.target.value }))} className="w-full sm:col-span-3" />
+                        <div className="space-y-2">
+                            <Label htmlFor="whatsapp">WhatsApp</Label>
+                            <Input id="whatsapp" value={editForm.whatsapp} onChange={(e) => setEditForm(prev => ({ ...prev, whatsapp: e.target.value }))} />
                         </div>
-                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
-                            <Label htmlFor="plan" className="text-left sm:text-right w-full sm:w-auto">Plano</Label>
-                            <Input id="plan" value={editForm.plan_type} onChange={(e) => setEditForm(prev => ({ ...prev, plan_type: e.target.value }))} className="w-full sm:col-span-3" />
+                        <div className="space-y-2">
+                            <Label htmlFor="plan">Modalidade</Label>
+                            <Input id="plan" value={editForm.plan_type} onChange={(e) => setEditForm(prev => ({ ...prev, plan_type: e.target.value }))} className="bg-muted" readOnly />
                         </div>
-                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
-                            <Label htmlFor="due" className="text-left sm:text-right w-full sm:w-auto">Dia Venc.</Label>
-                            <Input id="due" type="number" min="1" max="31" value={editForm.due_day} onChange={(e) => setEditForm(prev => ({ ...prev, due_day: Number(e.target.value) }))} className="w-full sm:col-span-3" />
+                        <div className="space-y-2">
+                            <Label htmlFor="due">Dia Venc.</Label>
+                            <Input id="due" type="number" min="1" max="31" value={editForm.due_day} onChange={(e) => setEditForm(prev => ({ ...prev, due_day: Number(e.target.value) }))} />
                         </div>
-                        <div className="flex flex-col sm:grid sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
-                            <Label htmlFor="price" className="text-left sm:text-right w-full sm:w-auto">Valor (R$)</Label>
-                            <Input id="price" type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm(prev => ({ ...prev, price: Number(e.target.value) }))} className="w-full sm:col-span-3" />
+                        <div className="space-y-2">
+                            <Label htmlFor="price">Valor (R$)</Label>
+                            <Input id="price" type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm(prev => ({ ...prev, price: Number(e.target.value) }))} />
                         </div>
                     </div>
                     <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-0 w-full">
